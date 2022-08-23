@@ -123,29 +123,44 @@ def create_app(test_config=None):
     # TEST: When completed, you will be able to a new book using the form. Try doing so from the last page of books.
     #       Your new book should show up immediately after you submit it at the end of the page.
 
-    @app.route('/books/create', methods=['POST'])
+    @app.route('/books', methods=['POST'])
     def create_book():
         body = request.get_json()
+
         new_title = body.get('title', None)
         new_author = body.get('author', None)
         new_rating = body.get('rating', None)
+        search = body.get('search', None)
+
         try:
-            book = Book(
-                title=new_title,
-                author=new_author,
-                rating=new_rating
-            )
-            book.insert()
+            if search:
+                selection = Book.query.order_by(Book.id).filter(
+                    Book.title.ilike("%{}%".format(search))
+                )
+                current_books = paginate_books(request, selection)
 
-            books = Book.query.order_by(Book.id).all()
-            current_books = paginate_books(request, books)
+                return jsonify({
+                    "success": True,
+                    "books": current_books,
+                    "total_books": len(selection.all()),
+                })
+            else:
+                book = Book(
+                    title=new_title,
+                    author=new_author,
+                    rating=new_rating
+                )
+                book.insert()
 
-            return jsonify({
-                'success': True,
-                'created': Book.id,
-                'books': current_books,
-                'total_books': len(Book.query.all())
-            })
+                books = Book.query.order_by(Book.id).all()
+                current_books = paginate_books(request, books)
+
+                return jsonify({
+                    'success': True,
+                    'created': Book.id,
+                    'books': current_books,
+                    'total_books': len(Book.query.all())
+                 })
 
         except:
             abort(422)
@@ -153,9 +168,9 @@ def create_app(test_config=None):
     @app.errorhandler(422)
     def unprocessable(error):
         return jsonify({
-        "success": False, 
-        "error": 422,
-        "message": "unprocessable"
+            "success": False,
+            "error": 422,
+            "message": "unprocessable"
         }), 422
 
     @app.errorhandler(404)
@@ -169,24 +184,25 @@ def create_app(test_config=None):
     @app.errorhandler(400)
     def unprocessable(error):
         return jsonify({
-        "success": False, 
-        "error": 400,
-        "message": "Bad Request"
+            "success": False,
+            "error": 400,
+            "message": "Bad Request"
         }), 400
 
     @app.errorhandler(405)
     def unprocessable(error):
         return jsonify({
-        "success": False, 
-        "error": 405,
-        "message": "Method not allowed"
+            "success": False,
+            "error": 405,
+            "message": "Method not allowed"
         }), 405
 
     @app.errorhandler(500)
     def unprocessable(error):
         return jsonify({
-        "success": False, 
-        "error": 500,
-        "message": "Resource Not Found"
+            "success": False,
+            "error": 500,
+            "message": "Resource Not Found"
         }), 500
+
     return app
