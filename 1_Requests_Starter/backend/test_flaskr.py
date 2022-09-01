@@ -91,7 +91,7 @@ class BookTestCase(unittest.TestCase):
         self.assertEqual(data["success"], False)
         self.assertEqual(data["message"], "method not allowed")
 
-    # Delete a different book in each attempt
+    # Delete a different book in each attempted
     def test_delete_book(self):
         res = self.client().delete("/books/2")
         data = json.loads(res.data)
