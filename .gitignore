@@ -2,4 +2,6 @@ node_modules
 venv
 .vscode
 __pycache__
+env/
+.dea/
 1_Requests_Starter/backend/envl
